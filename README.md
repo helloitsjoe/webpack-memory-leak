@@ -1,6 +1,10 @@
 # Webpack Memory Leak
 
-This is a basic Webpack setup with `HtmlWebpackPlugin` to reproduce the memory leak described in this Webpack issue: https://github.com/webpack/webpack/issues/17851
+This is a basic Webpack setup to reproduce the memory leak described in this Webpack issue: https://github.com/webpack/webpack/issues/17851
+
+## Summary
+
+Webpack doesn't fully clean up child compilers from previous compilations in watch mode. `HtmlWebpackPlugin` creates a child compiler so it's useful in this reproduction, but the leak itself is in Webpack.
 
 ## How to reproduce
 
