@@ -40,7 +40,7 @@ There are a number of `WeakMap`s used as caches in Webpack and HtmlWebpackPlugin
 
 </details>
 
-WeakMaps only become a problem when another object (including another WeakMap) holds a reference to one of their keys or values. In this case I methodically cleaned up WeakMap references in `_cleanupLastCompilation` until I was able to narrow it down to [`chunkGraphForChunkMap`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/ChunkGraph.js#L1804) holding onto `RuntimeModule`s which contain references to compilations from child compilers. The parent compilation reference is cleaned up when [`_cleanupLastCompilation`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/Compiler.js#L382-L394) runs, but the child is still referenced.
+WeakMaps can become a source of a memory leak when another object (including another WeakMap) holds a reference to one of their keys or values.
 
 <details open>
   <summary>Heap snapshot</summary>
@@ -51,9 +51,11 @@ WeakMaps only become a problem when another object (including another WeakMap) h
 
 ## The Fix
 
-TODO: Fill out details after PR
+[Webpack PR here](https://github.com/webpack/webpack/pull/17853).
 
-It looks like there's still a smaller leak somewhere, but for this particular leak we're seeing the expected number of `Compilation`s, `JavascriptParser`s, `ModuleGraph`s, etc.
+In this case I methodically cleaned up WeakMap references in `_cleanupLastCompilation` until I was able to narrow it down to [`chunkGraphForChunkMap`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/ChunkGraph.js#L1804) holding onto `RuntimeModule`s which contain references to compilations from child compilers. The parent compilation reference is cleaned up when [`_cleanupLastCompilation`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/Compiler.js#L382-L394) runs, but the child is still referenced. After calling `ChunkGraph.clearChunkGraphForChunk(chunk)` on all child compilation chunks the WeakMap references are properly garbage collected.
+
+We're seeing the expected number of instances of `Compilation`, `JavascriptParser`, `ModuleGraph`, etc, and the number of instances stays constant over multiple recompilations. There appears to be a smaller leak which I believe is unrelated.
 
 <details open>
   <summary>Heap diff after fix</summary>
@@ -61,10 +63,3 @@ It looks like there's still a smaller leak somewhere, but for this particular le
   <img width="956" alt="Heap diff after" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/8af5b7bc-a8d8-4af8-8347-5cf6a22750b0">
 
 </details>
-
-[invalidated]: https://github.com/jantimon/html-webpack-plugin/blob/fe231d3d3d256c2bb904b9e0f3f1e7aa67d7f3cd/lib/cached-child-compiler.js#L262
-[child-compiler]: https://github.com/jantimon/html-webpack-plugin/blob/fe231d3d3d256c2bb904b9e0f3f1e7aa67d7f3cd/lib/cached-child-compiler.js#L400
-[generate]: https://github.com/jantimon/html-webpack-plugin/blob/fe231d3d3d256c2bb904b9e0f3f1e7aa67d7f3cd/index.js#L174
-[example]: https://github.com/jantimon/html-webpack-plugin/blob/fe231d3d3d256c2bb904b9e0f3f1e7aa67d7f3cd/index.js#L1041
-[hooks-map]: https://github.com/jantimon/html-webpack-plugin/blob/fe231d3d3d256c2bb904b9e0f3f1e7aa67d7f3cd/lib/hooks.js#L71
-[graph-map]: https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/ModuleGraph.js#L859
