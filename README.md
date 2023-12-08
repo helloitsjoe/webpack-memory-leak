@@ -19,10 +19,10 @@ Inspecting the diff between heap snapshots you can see a number of object instan
 
 Note that you must save `index.template.html` to see this behavior, since this creates a new child compiler in `HtmlWebpackPlugin`.
 
-<details>
+<details open>
   <summary>Heap diff before fix</summary>
-
-  <img width="956" alt="Heap diff before" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/63b8f317-66db-465a-8243-ea822639edd6">
+  
+  <img width="640" alt="Heap diff before" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/c9cc3c09-7943-4bb6-b26b-a2c310569103">
 
 </details>
 
@@ -63,4 +63,4 @@ We're seeing the expected number of instances of `Compilation`, `JavascriptParse
 
 Heap diff before (same as above) | Heap diff after
 --- | ---
-<img width="956" alt="Heap diff before" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/63b8f317-66db-465a-8243-ea822639edd6"> | <img width="956" alt="Heap diff after" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/8af5b7bc-a8d8-4af8-8347-5cf6a22750b0">
+<img width="986" alt="Heap diff before" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/c9cc3c09-7943-4bb6-b26b-a2c310569103"> | <img width="986" alt="Heap diff after" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/fac5b4f9-d14d-4965-a1ea-9ab751898e86">
