@@ -59,11 +59,8 @@ WeakMaps can become a source of a memory leak when another object (including ano
 
 In this case I methodically cleaned up WeakMap references in `_cleanupLastCompilation` until I was able to narrow it down to [`chunkGraphForChunkMap`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/ChunkGraph.js#L1804) holding onto `RuntimeModule`s which contain references to compilations from child compilers. The parent compilation reference is cleaned up when [`_cleanupLastCompilation`](https://github.com/webpack/webpack/blob/87660921808566ef3b8796f8df61bd79fc026108/lib/Compiler.js#L382-L394) runs, but the child is still referenced. After calling `ChunkGraph.clearChunkGraphForChunk(chunk)` on all child compilation chunks the WeakMap references are properly garbage collected.
 
-We're seeing the expected number of instances of `Compilation`, `JavascriptParser`, `ModuleGraph`, etc, and the number of instances stays constant over multiple recompilations. There appears to be a smaller leak which I believe is unrelated.
+We're seeing the expected number of instances of `Compilation`, `JavascriptParser`, `ModuleGraph`, etc, and the number of instances stays constant over multiple recompilations. There appears to be a smaller leak in this screenshot but it seems to stabilize over time.
 
-<details open>
-  <summary>Heap diff after fix</summary>
-  
-  <img width="956" alt="Heap diff after" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/8af5b7bc-a8d8-4af8-8347-5cf6a22750b0">
-
-</details>
+Heap diff before (same as above) | Heap diff after
+--- | ---
+<img width="956" alt="Heap diff before" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/63b8f317-66db-465a-8243-ea822639edd6"> | <img width="956" alt="Heap diff after" src="https://github.com/helloitsjoe/webpack-memory-leak/assets/8823810/8af5b7bc-a8d8-4af8-8347-5cf6a22750b0">
